@@ -1,5 +1,6 @@
 #include "su_thrust_effectiveness.h"
 
+#include "su_params.h"
 #include "su_wrench_observer.h"
 
 #include "debug.h"
@@ -12,10 +13,6 @@
 #define SU_THRUST_EFFECTIVENESS_RHO   0.1f
 #define SU_THRUST_EFFECTIVENESS_INIT  1.0f
 #define SU_THRUST_EFFECTIVENESS_EPS   1.0e-6f
-#define SU_THRUST_EFFECTIVENESS_KF    5.0f
-#define SU_THRUST_EFFECTIVENESS_KP    2.9544511501f
-#define SU_THRUST_EFFECTIVENESS_KTAU  30.0f
-#define SU_THRUST_EFFECTIVENESS_KPTAU 10.9544511501f
 #define SU_THRUST_EFFECTIVENESS_ALPHA 1.0f
 
 static float su_eta_hat = SU_THRUST_EFFECTIVENESS_INIT;
@@ -156,10 +153,10 @@ void suThrustEffectivenessUpdate(const state_t *state,
 
   updateMatchedSignal(su_matched_force_signal_world, su_matched_force_dot_world,
                       su_matched_force_output_world, nominalForceWorld, dt,
-                      SU_THRUST_EFFECTIVENESS_KF, SU_THRUST_EFFECTIVENESS_KP);
+                      su_Kf, su_Kp);
   updateMatchedSignal(su_matched_torque_signal_world, su_matched_torque_dot_world,
                       su_matched_torque_output_world, nominalTorqueWorld, dt,
-                      SU_THRUST_EFFECTIVENESS_KTAU, SU_THRUST_EFFECTIVENESS_KPTAU);
+                      su_Ktau, su_Kh);
   vec3Copy(su_nominal_force_world, su_matched_force_output_world);
 
   float yEta[3];

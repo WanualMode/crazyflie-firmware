@@ -27,16 +27,13 @@ extern float su_Kf;               // [1/s] linear momentum observer gain
 extern float su_Ktau;             // [1/s] angular momentum observer gain
 extern float su_Kp;               // [1/s] translational momentum correction gain
 extern float su_Kh;               // [1/s] rotational momentum correction gain
-extern float su_Keps;             // [1/s] consistency residual correction gain
 
-extern uint8_t su_zero_bias;      // [0/1] trigger MOB output bias capture
 extern float su_com_offset_x;     // [m] body-frame CoM offset x
 extern float su_com_offset_y;     // [m] body-frame CoM offset y
 extern float su_com_offset_z;     // [m] body-frame CoM offset z
 extern float su_r_offset_x;       // [m] body-frame contact offset x
 extern float su_r_offset_y;       // [m] body-frame contact offset y
 extern float su_r_offset_z;       // [m] body-frame contact offset z
-extern uint8_t su_consistency_mode; // 0=None, 1=Residual, 2=Both
 
 // -------- Position reference / trajectory --------
 extern uint8_t su_traj1_shape;    // 0=None, 1=Circle, 2=Square

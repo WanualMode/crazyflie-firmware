@@ -6,6 +6,7 @@
 #include "log.h"
 #include "su_params.h"
 #include "su_position_trigger.h"
+#include "su_thrust_effectiveness.h"
 #include "su_trajectory_generator.h"
 #include "su_wrench_observer.h"
 
@@ -333,7 +334,7 @@ static void updateNormalEstimator(void)
   }
 
   float worldForce[3] = {0.0f, 0.0f, 0.0f};
-  suWrenchObserverGetWorldForce(worldForce);
+  suThrustEffectivenessGetCorrectedForceWorld(worldForce);
 
   const float epsilonF = clampPositive(su_normal_epsilon_f);
   if (vec3Norm(worldForce) <= epsilonF) {

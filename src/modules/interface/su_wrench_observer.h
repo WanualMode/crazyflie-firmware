@@ -24,7 +24,6 @@ void suWrenchObserverGetWorldInputTorque(float outTau[3]);
 void suWrenchObserverGetContactOffsetWorld(float outR[3]);
 void suWrenchObserverGetStateVelocityWorld(float outV[3]);
 void suWrenchObserverGetContactPointVelocityWorld(float outV[3]);
-void suWrenchObserverRequestZeroBias(void);
 
 #ifdef __cplusplus
 }
