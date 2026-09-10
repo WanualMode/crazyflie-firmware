@@ -11,9 +11,9 @@
 #include <math.h>
 #include <stdint.h>
 
-#define SU_OBSERVER_JXX         1.9e-5f
-#define SU_OBSERVER_JYY         1.9e-5f
-#define SU_OBSERVER_JZZ         3.0e-5f
+#define SU_OBSERVER_JXX         2.3951e-5f
+#define SU_OBSERVER_JYY         2.3951e-5f
+#define SU_OBSERVER_JZZ         3.2347e-5f
 
 static float su_motor_thrust_n[4];
 static uint16_t su_motor_pwm_ratio[4];
@@ -315,21 +315,22 @@ void suWrenchObserverUpdate(const state_t *state,
 
   vec3Sub(su_rot_momentum_err_body, su_rot_momentum_body, su_rot_momentum_hat_body);
 
-  float omega_cross_hhat[3];
+  float torque_l_hat_dot_body[3];
+  vec3Scale(torque_l_hat_dot_body, su_rot_momentum_err_body, su_Ktau);
+  vec3ScaleAdd(su_torque_l_hat_body, su_torque_l_hat_body, dt, torque_l_hat_dot_body);
+  sanitizeVec3(su_torque_l_hat_body);
+
+  float omega_cross_h[3];
+  vec3Cross(omega_cross_h, su_gyro_body_rad_s, su_rot_momentum_body);
+
   float rot_momentum_hat_dot[3];
-  vec3Cross(omega_cross_hhat, su_gyro_body_rad_s, su_rot_momentum_hat_body);
   for (int i = 0; i < 3; ++i) {
-    rot_momentum_hat_dot[i] = -omega_cross_hhat[i] + su_body_torque_nm[i] + su_torque_l_hat_body[i] +
+    rot_momentum_hat_dot[i] = su_body_torque_nm[i] - omega_cross_h[i] + su_torque_l_hat_body[i] +
                               su_Kh * su_rot_momentum_err_body[i];
   }
 
-  float torque_l_hat_dot_body[3];
-  vec3Scale(torque_l_hat_dot_body, su_rot_momentum_err_body, su_Ktau);
-
   vec3ScaleAdd(su_rot_momentum_hat_body, su_rot_momentum_hat_body, dt, rot_momentum_hat_dot);
-  vec3ScaleAdd(su_torque_l_hat_body, su_torque_l_hat_body, dt, torque_l_hat_dot_body);
   sanitizeVec3(su_rot_momentum_hat_body);
-  sanitizeVec3(su_torque_l_hat_body);
 
   mat3MulVec(su_torque_l_hat_world, R, su_torque_l_hat_body);
   sanitizeVec3(su_torque_l_hat_world);
