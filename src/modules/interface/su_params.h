@@ -10,7 +10,8 @@
  *
  * Units:
  *  - mass:            [kg]
- *  - Kf, Ktau:        [1/s]
+ *  - Ktau:            [1/s] in MOB, [1/s^2] in matched-filter dynamics
+ *  - Kh:              [1/s]
  */
 
 #ifdef __cplusplus
@@ -23,10 +24,8 @@ extern "C" {
 extern float su_mass;             // [kg]
 
 // -------- Wrench observer / MOB --------
-extern float su_Kf;               // [1/s] linear momentum observer gain
-extern float su_Ktau;             // [1/s] angular momentum observer gain
-extern float su_Kp;               // [1/s] translational momentum correction gain
-extern float su_Kh;               // [1/s] rotational momentum correction gain
+extern float su_Ktau;             // Shared MOB estimate / matched-filter stiffness gain
+extern float su_Kh;               // [1/s] shared MOB / matched-filter damping gain
 
 extern float su_com_offset_x;     // [m] body-frame CoM offset x
 extern float su_com_offset_y;     // [m] body-frame CoM offset y

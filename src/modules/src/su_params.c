@@ -8,10 +8,8 @@ float su_mass            = CF_MASS;      // [kg] 원래는 0.0393
 
 
 // Wrench observer / MOB 관련
-float su_Kf              = 30.0f;        // [1/s] linear momentum observer gain
-float su_Ktau            = 10.0f;        // [1/s] angular momentum observer gain
-float su_Kp              = 10.9544511501f; // [1/s] translational momentum correction gain
-float su_Kh              = 6.32f;        // [1/s] rotational momentum correction gain
+float su_Ktau            = 10.0f;        // Shared MOB estimate / matched-filter stiffness gain
+float su_Kh              = 6.32f;        // [1/s] shared MOB / matched-filter damping gain
 float su_com_offset_x    = 0.0f;         // [m] body-frame CoM offset x
 float su_com_offset_y    = 0.0f;         // [m] body-frame CoM offset y
 float su_com_offset_z    = 0.0f;         // [m] body-frame CoM offset z

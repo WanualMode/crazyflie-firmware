@@ -195,12 +195,13 @@ void suWrenchObserverUpdate(const state_t *state,
     return;
   }
   const float thrust_to_n = THRUST_MAX / (float)UINT16_MAX;
+  const float thrust_model_scale = 0.9f;
   const float gravity_world[3] = {0.0f, 0.0f, -su_mass * 9.81f};
 
-  const float f1 = thrust_to_n * (float)motorThrustReq->motors.m1;
-  const float f2 = thrust_to_n * (float)motorThrustReq->motors.m2;
-  const float f3 = thrust_to_n * (float)motorThrustReq->motors.m3;
-  const float f4 = thrust_to_n * (float)motorThrustReq->motors.m4;
+  const float f1 = thrust_model_scale * thrust_to_n * (float)motorThrustReq->motors.m1;
+  const float f2 = thrust_model_scale * thrust_to_n * (float)motorThrustReq->motors.m2;
+  const float f3 = thrust_model_scale * thrust_to_n * (float)motorThrustReq->motors.m3;
+  const float f4 = thrust_model_scale * thrust_to_n * (float)motorThrustReq->motors.m4;
 
   // NOTE: motorThrustReq is the battery-compensated uncapped request value,
   // matching the same raw PWM-scale quantity exposed as motor.m1req..m4req.
@@ -340,14 +341,14 @@ void suWrenchObserverUpdate(const state_t *state,
   float lin_momentum_hat_dot[3];
   for (int i = 0; i < 3; ++i) {
     lin_momentum_hat_dot[i] = gravity_world[i] + su_world_force_n[i] + su_force_l_hat_world[i] +
-                              su_Kp * su_lin_momentum_err_world[i];
+                              su_Kh * su_lin_momentum_err_world[i];
   }
 
   vec3ScaleAdd(su_lin_momentum_hat_world, su_lin_momentum_hat_world, dt, lin_momentum_hat_dot);
   sanitizeVec3(su_lin_momentum_hat_world);
 
   float force_l_hat_dot_world[3];
-  vec3Scale(force_l_hat_dot_world, su_lin_momentum_err_world, su_Kf);
+  vec3Scale(force_l_hat_dot_world, su_lin_momentum_err_world, su_Ktau);
   vec3ScaleAdd(su_force_l_hat_world, su_force_l_hat_world, dt, force_l_hat_dot_world);
   sanitizeVec3(su_force_l_hat_world);
 

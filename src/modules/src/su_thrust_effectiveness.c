@@ -9,8 +9,8 @@
 #include <math.h>
 #include <stdbool.h>
 
-#define SU_THRUST_EFFECTIVENESS_GAMMA 20.0f
-#define SU_THRUST_EFFECTIVENESS_RHO   0.1f
+#define SU_THRUST_EFFECTIVENESS_GAMMA 2.0f
+#define SU_THRUST_EFFECTIVENESS_RHO   0.002f
 #define SU_THRUST_EFFECTIVENESS_INIT  1.0f
 #define SU_THRUST_EFFECTIVENESS_EPS   1.0e-6f
 #define SU_THRUST_EFFECTIVENESS_ALPHA 1.0f
@@ -153,7 +153,7 @@ void suThrustEffectivenessUpdate(const state_t *state,
 
   updateMatchedSignal(su_matched_force_signal_world, su_matched_force_dot_world,
                       su_matched_force_output_world, nominalForceWorld, dt,
-                      su_Kf, su_Kp);
+                      su_Ktau, su_Kh);
   updateMatchedSignal(su_matched_torque_signal_world, su_matched_torque_dot_world,
                       su_matched_torque_output_world, nominalTorqueWorld, dt,
                       su_Ktau, su_Kh);
