@@ -11,7 +11,6 @@ extern "C" {
 void suWrenchObserverInit(void);
 
 void suWrenchObserverUpdate(const state_t *state,
-                            const motors_thrust_uncapped_t *motorThrustReq,
                             const motors_thrust_pwm_t *motorPwm,
                             const Axis3f *gyro_deg_s,
                             const float vel_from_pos_world[3],

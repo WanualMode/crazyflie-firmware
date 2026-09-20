@@ -185,26 +185,21 @@ void suWrenchObserverInit(void)
 }
 
 void suWrenchObserverUpdate(const state_t *state,
-                            const motors_thrust_uncapped_t *motorThrustReq,
                             const motors_thrust_pwm_t *motorPwm,
                             const Axis3f *gyro_deg_s,
                             const float vel_from_pos_world[3],
                             float dt)
 {
-  if (!state || !motorThrustReq || !motorPwm) {
+  if (!state || !motorPwm) {
     return;
   }
   const float thrust_to_n = THRUST_MAX / (float)UINT16_MAX;
-  const float thrust_model_scale = 0.9f;
   const float gravity_world[3] = {0.0f, 0.0f, -su_mass * 9.81f};
 
-  const float f1 = thrust_model_scale * thrust_to_n * (float)motorThrustReq->motors.m1;
-  const float f2 = thrust_model_scale * thrust_to_n * (float)motorThrustReq->motors.m2;
-  const float f3 = thrust_model_scale * thrust_to_n * (float)motorThrustReq->motors.m3;
-  const float f4 = thrust_model_scale * thrust_to_n * (float)motorThrustReq->motors.m4;
-
-  // NOTE: motorThrustReq is the battery-compensated uncapped request value,
-  // matching the same raw PWM-scale quantity exposed as motor.m1req..m4req.
+  const float f1 = thrust_to_n * (float)motorPwm->motors.m1;
+  const float f2 = thrust_to_n * (float)motorPwm->motors.m2;
+  const float f3 = thrust_to_n * (float)motorPwm->motors.m3;
+  const float f4 = thrust_to_n * (float)motorPwm->motors.m4;
 
   su_motor_thrust_n[0] = sanitizeFinite(f1);
   su_motor_thrust_n[1] = sanitizeFinite(f2);

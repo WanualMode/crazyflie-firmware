@@ -8,14 +8,14 @@ float su_mass            = CF_MASS;      // [kg] 원래는 0.0393
 
 
 // Wrench observer / MOB 관련
-float su_Ktau            = 10.0f;        // Shared MOB estimate / matched-filter stiffness gain
-float su_Kh              = 6.32f;        // [1/s] shared MOB / matched-filter damping gain
+float su_Ktau            = 88.8264f;     // wn^2, wn = 3*pi rad/s
+float su_Kh              = 18.8496f;     // 2*wn (critical damping), wn = 3*pi rad/s
 float su_com_offset_x    = 0.0f;         // [m] body-frame CoM offset x
 float su_com_offset_y    = 0.0f;         // [m] body-frame CoM offset y
 float su_com_offset_z    = 0.0f;         // [m] body-frame CoM offset z
-float su_r_offset_x      = 0.09f;        // [m] body-frame point-contact offset x
+float su_r_offset_x      = 0.085f;       // [m] body-frame point-contact offset x
 float su_r_offset_y      = 0.0f;         // [m] body-frame point-contact offset y
-float su_r_offset_z      = 0.035f;       // [m] body-frame point-contact offset z
+float su_r_offset_z      = 0.020f;       // [m] body-frame point-contact offset z
 uint8_t su_traj1_shape    = 1;           // 0=None, 1=Circle, 2=Square
 float su_traj1_size_x     = 0.30f;       // [m]
 float su_traj1_size_y     = 0.30f;       // [m]
