@@ -334,7 +334,7 @@ static void updateNormalEstimator(void)
   }
 
   float worldForce[3] = {0.0f, 0.0f, 0.0f};
-  suThrustEffectivenessGetCorrectedForceWorld(worldForce);
+  suThrustEffectivenessGetContactForceWorld(worldForce);
 
   const float epsilonF = clampPositive(su_normal_epsilon_f);
   if (vec3Norm(worldForce) <= epsilonF) {
@@ -486,7 +486,7 @@ static void applyPreloadVelocityControl(float velocityCmdWorld[3],
   getControlNormalWorld(normalWorld);
 
   float worldForce[3] = {0.0f, 0.0f, 0.0f};
-  suWrenchObserverGetWorldForce(worldForce);
+  suThrustEffectivenessGetContactForceWorld(worldForce);
 
   const float f_n = vec3Dot(normalWorld, worldForce);
   const float stateVelocityWorld[3] = {
