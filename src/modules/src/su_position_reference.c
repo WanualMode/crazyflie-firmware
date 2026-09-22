@@ -13,7 +13,6 @@
 #define SU_POSITION_VELOCITY_RATE_HZ 100
 #define SU_RAD2DEG (180.0f / (float)M_PI)
 #define SU_YAW_ALIGN_SAT_DEG 70.0f
-#define SU_NORMAL_EST_EIG_ITERS 6
 #define SU_NORMAL_PROJ_VEL_LPF_HZ 0.4f
 
 static bool referenceInitialized = false;
@@ -31,6 +30,7 @@ static float normalEstimatorMatrix[3][3];
 static float normalForceEvidenceWorld[3] = {-1.0f, 0.0f, 0.0f};
 static float normalProjectedCandidateWorld[3] = {-1.0f, 0.0f, 0.0f};
 static float normalEstimateWorld[3] = {-1.0f, 0.0f, 0.0f};
+static float normalEstimateDotWorld[3] = {0.0f, 0.0f, 0.0f};
 static float filteredContactVelWorld[3] = {0.0f, 0.0f, 0.0f};
 static float normalVelocityLeakageRaw = 0.0f;
 static float normalVelocityLeakageLpf = 0.0f;
@@ -176,13 +176,6 @@ static void vec3Copy(float out[3], const float in[3])
   out[2] = in[2];
 }
 
-static void vec3Scale(float out[3], const float in[3], const float scale)
-{
-  out[0] = in[0] * scale;
-  out[1] = in[1] * scale;
-  out[2] = in[2] * scale;
-}
-
 static void vec3Cross(float out[3], const float a[3], const float b[3])
 {
   out[0] = a[1] * b[2] - a[2] * b[1];
@@ -198,7 +191,7 @@ static float vec3Norm(const float v[3])
 static bool vec3Normalize(float out[3], const float in[3], const float eps)
 {
   const float norm = vec3Norm(in);
-  if (norm <= eps) {
+  if (!isfinite(norm) || norm <= eps) {
     return false;
   }
 
@@ -244,6 +237,9 @@ static void resetNormalEstimator(void)
   }
 
   getFixedNormalWorld(normalEstimateWorld);
+  normalEstimateDotWorld[0] = 0.0f;
+  normalEstimateDotWorld[1] = 0.0f;
+  normalEstimateDotWorld[2] = 0.0f;
   getFixedNormalWorld(normalForceEvidenceWorld);
   getFixedNormalWorld(normalProjectedCandidateWorld);
   filteredContactVelWorld[0] = 0.0f;
@@ -283,26 +279,58 @@ static void getControlNormalWorld(float outNormal[3])
   }
 }
 
-static void computeDominantEigenvectorSymmetric3x3(float outVec[3], const float A[3][3], const float fallback[3])
+static void updateNormalFromDirectionalMemory(const float candidate[3],
+                                              const float correctedForce[3],
+                                              const float dt)
 {
-  float iterVec[3];
-  if (!vec3Normalize(iterVec, fallback, 1e-6f)) {
-    getFixedNormalWorld(iterVec);
-  }
-
-  for (int iter = 0; iter < SU_NORMAL_EST_EIG_ITERS; ++iter) {
-    float nextVec[3] = {
-      A[0][0] * iterVec[0] + A[0][1] * iterVec[1] + A[0][2] * iterVec[2],
-      A[1][0] * iterVec[0] + A[1][1] * iterVec[1] + A[1][2] * iterVec[2],
-      A[2][0] * iterVec[0] + A[2][1] * iterVec[1] + A[2][2] * iterVec[2],
+  if (!normalEstimateInitialized) {
+    vec3Copy(normalEstimateWorld, candidate);
+    normalEstimateDotWorld[0] = 0.0f;
+    normalEstimateDotWorld[1] = 0.0f;
+    normalEstimateDotWorld[2] = 0.0f;
+    normalEstimateInitialized = true;
+  } else {
+    const float lnN[3] = {
+      normalEstimatorMatrix[0][0] * normalEstimateWorld[0] +
+        normalEstimatorMatrix[0][1] * normalEstimateWorld[1] +
+        normalEstimatorMatrix[0][2] * normalEstimateWorld[2],
+      normalEstimatorMatrix[1][0] * normalEstimateWorld[0] +
+        normalEstimatorMatrix[1][1] * normalEstimateWorld[1] +
+        normalEstimatorMatrix[1][2] * normalEstimateWorld[2],
+      normalEstimatorMatrix[2][0] * normalEstimateWorld[0] +
+        normalEstimatorMatrix[2][1] * normalEstimateWorld[1] +
+        normalEstimatorMatrix[2][2] * normalEstimateWorld[2],
     };
+    const float scalar = vec3Dot(normalEstimateWorld, lnN);
+    const float gamma = clampPositive(su_normal_gamma);
 
-    if (!vec3Normalize(iterVec, nextVec, 1e-9f)) {
-      break;
+    for (int i = 0; i < 3; ++i) {
+      normalEstimateDotWorld[i] = gamma *
+        (lnN[i] - normalEstimateWorld[i] * scalar);
+    }
+
+    const float estimateNext[3] = {
+      normalEstimateWorld[0] + dt * normalEstimateDotWorld[0],
+      normalEstimateWorld[1] + dt * normalEstimateDotWorld[1],
+      normalEstimateWorld[2] + dt * normalEstimateDotWorld[2],
+    };
+    float estimateNormalized[3];
+    if (vec3Normalize(estimateNormalized, estimateNext, 1e-6f)) {
+      vec3Copy(normalEstimateWorld, estimateNormalized);
+    } else {
+      vec3Copy(normalEstimateWorld, candidate);
+      normalEstimateDotWorld[0] = 0.0f;
+      normalEstimateDotWorld[1] = 0.0f;
+      normalEstimateDotWorld[2] = 0.0f;
     }
   }
 
-  vec3Copy(outVec, iterVec);
+  if (vec3Dot(normalEstimateWorld, correctedForce) < 0.0f) {
+    for (int i = 0; i < 3; ++i) {
+      normalEstimateWorld[i] = -normalEstimateWorld[i];
+      normalEstimateDotWorld[i] = -normalEstimateDotWorld[i];
+    }
+  }
 }
 
 static void updateContactPointVelocityLpf(void)
@@ -329,6 +357,9 @@ static void updateNormalEstimator(void)
 {
   if (!isNormalEstimatorEnabled()) {
     getFixedNormalWorld(normalEstimateWorld);
+    normalEstimateDotWorld[0] = 0.0f;
+    normalEstimateDotWorld[1] = 0.0f;
+    normalEstimateDotWorld[2] = 0.0f;
     normalEstimateInitialized = false;
     return;
   }
@@ -383,15 +414,7 @@ static void updateNormalEstimator(void)
     }
   }
 
-  float candidate[3];
-  const float *seed = normalEstimateInitialized ? normalEstimateWorld : nRaw;
-  computeDominantEigenvectorSymmetric3x3(candidate, normalEstimatorMatrix, seed);
-  if (vec3Dot(candidate, seed) < 0.0f) {
-    vec3Scale(candidate, candidate, -1.0f);
-  }
-
-  vec3Copy(normalEstimateWorld, candidate);
-  normalEstimateInitialized = true;
+  updateNormalFromDirectionalMemory(nRaw, worldForce, dt);
 
   const float cutoffHz = SU_NORMAL_PROJ_VEL_LPF_HZ;
   const float tau = 1.0f / (2.0f * (float)M_PI * cutoffHz);
@@ -695,6 +718,9 @@ LOG_ADD(LOG_FLOAT, nPostZ, &normalProjectedCandidateWorld[2])
 LOG_ADD(LOG_FLOAT, nEstX, &normalEstimateWorld[0])
 LOG_ADD(LOG_FLOAT, nEstY, &normalEstimateWorld[1])
 LOG_ADD(LOG_FLOAT, nEstZ, &normalEstimateWorld[2])
+LOG_ADD(LOG_FLOAT, nDotX, &normalEstimateDotWorld[0])
+LOG_ADD(LOG_FLOAT, nDotY, &normalEstimateDotWorld[1])
+LOG_ADD(LOG_FLOAT, nDotZ, &normalEstimateDotWorld[2])
 LOG_ADD(LOG_FLOAT, vEeX, &filteredContactVelWorld[0])
 LOG_ADD(LOG_FLOAT, vEeY, &filteredContactVelWorld[1])
 LOG_ADD(LOG_FLOAT, vEeZ, &filteredContactVelWorld[2])

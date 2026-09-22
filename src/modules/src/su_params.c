@@ -22,6 +22,7 @@ float su_traj1_size_y     = 0.30f;       // [m]
 float su_traj1_period_s   = 6.0f;        // [s]
 uint8_t su_normal_estimation = 1;        // 0: fixed normal, 1: enable force-dominant normal estimator
 float su_normal_beta      = 3.0f;        // [1/s] normal-axis memory decay
+float su_normal_gamma     = 6.0f;        // [1/s] normal-axis tracking gain
 float su_normal_epsilon_g = 0.003f;      // [m^2/s^2] velocity projection regularization
 float su_normal_epsilon_f = 0.01f;       // [N] minimum force evidence norm
 float su_g_nf             = 1.0f;        // normal force tracking gain
@@ -54,6 +55,7 @@ PARAM_ADD(PARAM_FLOAT, traj1SizeY,      &su_traj1_size_y)
 PARAM_ADD(PARAM_FLOAT, traj1Period,     &su_traj1_period_s)
 PARAM_ADD(PARAM_UINT8, preloadEn,       &su_normal_estimation)
 PARAM_ADD(PARAM_FLOAT, normBeta,        &su_normal_beta)
+PARAM_ADD(PARAM_FLOAT, normGamma,       &su_normal_gamma)
 PARAM_ADD(PARAM_FLOAT, normEpsG,        &su_normal_epsilon_g)
 PARAM_ADD(PARAM_FLOAT, normEpsF,        &su_normal_epsilon_f)
 PARAM_ADD(PARAM_FLOAT, preloadGf,       &su_g_nf)
