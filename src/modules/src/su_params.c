@@ -8,8 +8,8 @@ float su_mass            = CF_MASS;      // [kg] 원래는 0.0393
 
 
 // Wrench observer / MOB 관련
-float su_Ktau            = 88.8264f;     // wn^2, wn = 3*pi rad/s
-float su_Kh              = 18.8496f;     // 2*wn (critical damping), wn = 3*pi rad/s
+float su_Ktau            = 10.0f;     // wn^2, wn = 3*pi rad/s
+float su_Kh              = 6.32f;     // 2*wn (critical damping), wn = 3*pi rad/s
 float su_com_offset_x    = 0.0f;         // [m] body-frame CoM offset x
 float su_com_offset_y    = 0.0f;         // [m] body-frame CoM offset y
 float su_com_offset_z    = 0.0f;         // [m] body-frame CoM offset z
